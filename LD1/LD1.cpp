@@ -6,96 +6,146 @@ using namespace System;
 using namespace std;
 
 class Animal {
-private:
-    string name, nickname;
-    short birthYear;
-	
-public:
-    Animal();
-    Animal(string n, string nick, short year);
-	~Animal()
-	{
-        cout << "Object destroyed !" << endl;
-	}
-    void print_animal() const ;
-    string GetName() const;
-    string GetNickname() const;
-    short GetBirthYear() const ;
+protected:
+	string name, nickname;
+	short birthYear;
 
-    void SetName(string n) ;
-    void SetNickname(string nick) ;
-    void SetBirthYear(short year) ;
+public:
+	Animal();
+	Animal(string n, string nick, short year);
+	virtual ~Animal()
+	{
+		cout << "Object with values: ";
+		Animal::print();
+		cout << " destroyed!" << endl;
+	}
+	virtual void print() const;
+	string GetName() const;
+	string GetNickname() const;
+	short GetBirthYear() const;
+
+	void SetName(string n);
+	void SetNickname(string nick);
+	void SetBirthYear(short year);
 
 };
 
-Animal::Animal() : name("name"), nickname("Nickname"), birthYear(2000)
+class ZooAnimal : public Animal
 {
-	
-}
+private:
+	int sector;
 
- Animal::Animal(string n, string nick, short year)
+public:
+	ZooAnimal() :Animal(), sector(0) {}
+	ZooAnimal(string name, string nick, short year, int sector) : Animal(name, nick, year)
+	{
+		this->sector = sector;
+	}
+
+	virtual ~ZooAnimal()
+	{
+		cout << "Object with values: ";
+		ZooAnimal::print();
+		cout << " destroyed!" << endl;
+	}
+
+	virtual void print() const
+	{
+		Animal::print();
+		cout << "Sector = " << sector;
+	}
+
+	int get_sector() const
+	{
+		return sector;
+	}
+	void set_sector(int sec)
+	{
+		this->sector = sec;
+	}
+
+};
+
+Animal::Animal() : name("name"), nickname("Nickname"), birthYear(2020)
+{}
+
+Animal::Animal(string n, string nick, short year)
 {
-    name = n;
-    nickname = nick;
-    birthYear = year;
+	name = n;
+	nickname = nick;
+	birthYear = year;
 }
 
 inline short Animal::GetBirthYear() const
 {
-    return  birthYear;
+	return  birthYear;
 }
 inline string Animal::GetName() const
 {
-    return name;
+	return name;
 }
 
-inline string Animal::GetNickname() const 
+inline string Animal::GetNickname() const
 {
-    return nickname;
+	return nickname;
 }
 
-inline void Animal::print_animal() const 
+inline void Animal::print() const
 {
-	cout << "Name: " << name << " Nickname: "<< nickname << " Birth Year: " << birthYear <<"\n";
+	cout << "Name: " << name << " Nickname: " << nickname << " Birth Year: " << birthYear ;
 }
 
-inline void Animal::SetName(std::string n) 
+inline void Animal::SetName(std::string n)
 {
 	name = n;
 }
 
 inline void Animal::SetBirthYear(short year)
 {
-    birthYear = year;
+	birthYear = year;
 }
 
-inline void Animal::SetNickname(string nick) 
+inline void Animal::SetNickname(string nick)
 {
-    nickname = nick;
+	nickname = nick;
 }
-
-
-
-
 
 int main(void)
 {
+	const int N = 3;
 
-    Animal A1, * A2;
-
-    A2 = new Animal("Beep", "bop", 20200);
-    A1.print_animal();
-
-    A1.SetBirthYear(A1.GetBirthYear() + 10);
-    A1.print_animal();
-
-    A2->SetName("NewName");
+	Animal* animals[N ]
+	{
+		new Animal(),
+		new ZooAnimal("Horse","H", 325, 5),
+		new ZooAnimal("Volfy","V", 2010, 1)
+	};
 	
-    (*A2).print_animal();
+	cout << "Array of animals: " << endl;
 	
+	for (int i = 0; i < N; i++) {
+		cout << (i + 1) << ". ";
+		animals[i]->print();
+		cout << endl;
+	}
+	cout << endl << endl;
+	for (int i = 0; i < N; i++) {
+		delete animals[i];
+	}
 	
-	
-    cout << "\n\n";
+	//
+	// Animal* A2;
+	//
+	//
+	// A2 = new Animal("Beep", "bop", 2020);
 
-    return 0;
+	// A2->SetName("NewName");
+	//
+	// (*A2).print();
+
+
+
+	cout << "\n\n";
+
+	return 0;
 }
