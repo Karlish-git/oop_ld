@@ -126,10 +126,12 @@
     <ResourceCompile Include="app.rc" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="a.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="Resource.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="a.cpp" />
     <ClCompile Include="AssemblyInfo.cpp" />
     <ClCompile Include="LD1.cpp" />
     <ClCompile Include="pch.cpp">
