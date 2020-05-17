@@ -2,66 +2,54 @@
 #include <string>
 #include <iostream>
 
-#include <vector>
-
 
 using namespace std;
 
 class OverflowExc { // var jau sseit pabeigt ar };
 };
 
-template <class	T>
 class Animal {
 protected:
 	string name, nickname;
-	T birthYear;
+	short birthYear;
 
 public:
 	Animal();
-	Animal(string n, string nick, T birth_year);
+	Animal(string n, string nick, short year);
 	virtual ~Animal()
 	{
-		cout << "Object with values: ";
-		Animal::Print();
-		cout << " destroyed!" << endl;
+		cout << " Animal destroyed!" << endl;
 	}
 
 	string GetName() const;
 	string GetNickname() const;
-	T GetBirthYear() const;
+	short GetBirthYear() const;
 
 	void SetName(string n);
 	void SetNickname(string nick);
 	void SetBirthYear(short year);
+	friend ostream& operator << (ostream& O, const Animal& animal) {
+		O << "Name: " << animal.name << " Nickname: " << animal.nickname << " BirthYear:" << animal.birthYear;
+		return O;
+	};
 
-	virtual void Print() const;
 };
 
-template <class T>
-class ZooAnimal : public Animal<T>
+class ZooAnimal : public Animal
 {
 private:
 	int sector;
 
 public:
-	ZooAnimal() :Animal<T>(), sector() {}
-	ZooAnimal(const string name, const string nick,
-		const short year, const int sector) : Animal<T>(name, nick, year)
+	ZooAnimal() :Animal(), sector(0) {}
+	ZooAnimal(string name, string nick, short year, int sector) : Animal(name, nick, year)
 	{
 		this->sector = sector;
 	}
 
 	virtual ~ZooAnimal()
 	{
-		cout << "Object with values: ";
-		ZooAnimal::Print();
-		cout << " destroyed!" << endl;
-	}
-
-	void Print() const
-	{
-		Animal<T>::Print();
-		cout << " Sector = " << sector;
+		cout << "ZooAnimal destroyed!" << endl;
 	}
 
 	int get_sector() const
@@ -72,14 +60,17 @@ public:
 	{
 		this->sector = sec;
 	}
+
+	friend ostream& operator << (ostream& O, const ZooAnimal& zoo_animal) {
+		O << (ZooAnimal&)zoo_animal << ", Sector= " << zoo_animal.sector;
+		return O;
+	};
 };
 
-
-template <class T>
 class Zoo
 {
 private:
-	typedef ZooAnimal<T>* ZAnimal;
+	typedef ZooAnimal* ZAnimal;
 	ZAnimal* Animals;
 	static const unsigned int DEFAULT_MAX_LENGTH = 5;
 	unsigned int MaxLength;
@@ -106,26 +97,10 @@ public:
 		return Length;
 	}
 
-	void Add(const ZooAnimal<T>& animal)
-	{
-		if (Length == MaxLength)
-			throw OverflowExc(); // throw and return
-		Animals[Length++] = new ZooAnimal<T>(
-			animal.GetName(), animal.GetNickname(), animal.GetBirthYear(), animal.get_sector());
-	};
-
-	void  Print() const {
-		cout << endl << "Zoo nodes:" << endl;
-		for (unsigned int i = 0; i < Length; i++) {
-			cout << (i + 1) << ". ";
-			Animals[i]->Print();
-			cout << "." << endl;
-		}
-	};
 
 	short GetMinBirth() const
 	{
-		unsigned short min = Animals[0]->GetBirthYear();
+		short min = Animals[0]->GetBirthYear();
 		for (unsigned int i = 1; i < Length; i++) {
 			if (Animals[i]->GetBirthYear() < min)
 			{
@@ -133,63 +108,70 @@ public:
 			}
 		}
 		return min;
-	};
+	}
+
+	Zoo& operator+=(const ZooAnimal& zoo_animal)
+	{
+		if (Length == MaxLength)
+			throw OverflowExc(); // throw and return
+		Animals[Length++] = new ZooAnimal(
+			zoo_animal.GetName(), zoo_animal.GetNickname(),
+			zoo_animal.GetBirthYear(), zoo_animal.get_sector());
+		return *this;
+	}
+
+	friend ostream& operator << (ostream& O, const Zoo& zoo) {
+		O << "Animals:" << endl;
+		for (unsigned int i = 0; i < zoo.Length; i++) {
+			O << (i + 1) << ". " << *(zoo.Animals[i]) << endl;
+		}
+		return O;
+	}
+
 };
 
-template <class T>
-Animal<T>::Animal() : name("name"), nickname("Nickname"), birthYear(2020)
+
+Animal::Animal() : name("name"), nickname("Nickname"), birthYear(2020)
 {}
 
-template <class T>
-Animal<T>::Animal(string n, string nick, T year)
+Animal::Animal(string n, string nick, short year)
 {
 	name = n;
 	nickname = nick;
 	birthYear = year;
 }
 
-template <class T>
-inline T Animal<T>::GetBirthYear() const
+inline short Animal::GetBirthYear() const
 {
 	return  birthYear;
 }
-
-template <class T>
-inline string Animal<T>::GetName() const
+inline string Animal::GetName() const
 {
 	return name;
 }
 
-template <class T>
-inline string Animal<T>::GetNickname() const
+inline string Animal::GetNickname() const
 {
 	return nickname;
 }
 
-template <class T>
-inline void Animal<T>::Print() const
-{
-	cout << "Name: " << name << " Nickname: " << nickname << " Birth Year: " << birthYear;
-}
-
-template <class T>
-inline void Animal<T>::SetName(std::string n)
+inline void Animal::SetName(std::string n)
 {
 	name = n;
 }
 
-
-template <class T>
-inline void Animal<T>::SetBirthYear(short year)
+inline void Animal::SetBirthYear(short year)
 {
 	birthYear = year;
 }
 
-template <class T>
-inline void Animal<T>::SetNickname(string nick)
+inline void Animal::SetNickname(string nick)
 {
 	nickname = nick;
 }
+
+
+
 
 
 
@@ -197,26 +179,20 @@ inline void Animal<T>::SetNickname(string nick)
 int main(void)
 {
 
-	// cout << "\n\nDefault maximal length (from CLASS): " <<
-	// 	Zoo::GetDefaultMaxLength() << "." << endl;
+	cout << "\n\nDefault maximal length (from CLASS): " <<
+		Zoo::GetDefaultMaxLength() << "." << endl;
 
-	Zoo<unsigned short>* zoo_short = new Zoo<unsigned short>(2);
-	Zoo<unsigned int>* zoo_int = new Zoo<unsigned int>(2);
+	Zoo* zoo = new Zoo(2);
+	ZooAnimal* a_animal = new ZooAnimal("AAA", "A", 100, 5);
+	ZooAnimal b_animal("BBB", "B", 10, 6);
+	ZooAnimal c_animal("CCC", "C", 5, 4);
+	ZooAnimal d_animal("DDD", "D", 54, 3);
+	ZooAnimal e_animal("EEE", "E", 20, 2);
 
-	ZooAnimal<unsigned short>* a_animal = new ZooAnimal<unsigned short>("AAA", "A", 100, 5);
-	ZooAnimal<unsigned short> b_animal("BBB", "B", 10, 6);
-	ZooAnimal<unsigned int> c_animal("CCC", "C", 5, 4);
-	ZooAnimal<unsigned int> d_animal("DDD", "D", 54, 3);
-	ZooAnimal<unsigned int> e_animal("EEE", "E", 20, 2);
-
-
-
-
-	cout << "\tSHORT ZOO" << endl;
 
 	try
 	{
-		zoo_short->Add(*a_animal);
+		*zoo += *a_animal;
 		std::cout << "a_animal added" << endl;
 	}
 	catch (const OverflowExc)
@@ -226,16 +202,17 @@ int main(void)
 	catch (...) {
 		cout << "Unknown Error !" << endl;
 	}
+
 	delete a_animal;
 
 
-	cout << "Maximal length: " << zoo_short->GetMaxLength() << "." << endl;
-	cout << "Current length: " << zoo_short->GetLength() << "." << endl;
+	cout << "Maximal length: " << zoo->GetMaxLength() << "." << endl;
+	cout << "Current length: " << zoo->GetLength() << "." << endl;
 
 
 	try
 	{
-		zoo_short->Add(b_animal);
+		*zoo += b_animal;
 		std::cout << "b_animal added" << endl;
 	}
 	catch (const OverflowExc)
@@ -245,13 +222,12 @@ int main(void)
 	catch (...) {
 		cout << "Unknown Error !" << endl;
 	}
-
-	cout << "Current length: " << zoo_short->GetLength() << "." << endl;
+	cout << "Current length: " << zoo->GetLength() << "." << endl;
 
 	try
 	{
-		zoo_short->Add(b_animal);
-		std::cout << "a_animal added" << endl;
+		*zoo += b_animal;
+		std::cout << "b_animal added second time." << endl;
 	}
 	catch (const OverflowExc)
 	{
@@ -260,46 +236,10 @@ int main(void)
 	catch (...) {
 		cout << "Unknown Error !" << endl;
 	}
+	cout << "Current length: " << zoo->GetLength() << "." << endl;
 
-	cout << "Current length: " << zoo_short->GetLength() << "." << endl;
-	cout << "Min birth year:" << zoo_short->GetMinBirth();
-	zoo_short->Print();
+	cout << "Min birth year:" << zoo->GetMinBirth();
 
-
-	//----------Int---------
-	cout << "\tINT ZOO" << endl;
-
-	try
-	{
-		zoo_int->Add(c_animal);
-		std::cout << "b_animal added" << endl;
-	}
-	catch (const OverflowExc)
-	{
-		cout << "*** Error: maximal length exceeded ! ***" << endl;
-	}
-	catch (...) {
-		cout << "Unknown Error !" << endl;
-	}
-	cout << "Current length: " << zoo_int->GetLength() << "." << endl;
-
-	try
-	{
-		zoo_int->Add(d_animal);
-		cout << "a_animal added" << endl;
-	}
-	catch (const OverflowExc)
-	{
-		cout << "*** Error: maximal length exceeded ! ***" << endl;
-	}
-	catch (...) {
-		cout << "Unknown Error !" << endl;
-	}
-
-	cout << "Current length: " << zoo_int->GetLength() << "." << endl;
-	cout << "Min birth year:" << zoo_int->GetMinBirth();
 	cout << "\n\n";
-
 	return 0;
 }
-
